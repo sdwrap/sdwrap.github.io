@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Website Latency Checker</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            width: 100%;
+            max-width: 600px;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 10px;
+        }
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-radius: 4px;
+        }
+        th {
+            background-color: #f8f9fa;
+            color: #495057;
+            font-weight: 600;
+        }
+        tr {
+            background-color: #ffffff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+        tr:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .normal { color: #28a745; }
+        .abnormal { color: #dc3545; }
+        .slow { color: #ffc107; }
+        .error { color: #6c757d; }
+        .status-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        .normal .status-dot { background-color: #28a745; }
+        .abnormal .status-dot { background-color: #dc3545; }
+        .slow .status-dot { background-color: #ffc107; }
+        .error .status-dot { background-color: #6c757d; }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            font-style: italic;
+            color: #6c757d;
+        }
+        a {
+            text-decoration: none; /* 去掉下划线 */
+            color: inherit;        /* 让链接文字颜色继承父元素的颜色 */
+            font-family: inherit;  /* 继承父元素的字体 */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>网址自动检测</h1>
+        <div id="loading" class="loading">正在检查延迟...</div>
+        <table id="results" style="display: none;">
+            <tr>
+                <th>网址</th>
+                <th>延迟</th>
+                <th>状态</th>
+            </tr>
+        </table>
+    </div>
+
+    <script>
+        const websites = ['www.sdwanvpn.com', '212ad3adw.com', 'www.bilibili.com'];
+        const resultsTable = document.getElementById('results');
+        const loadingDiv = document.getElementById('loading');
+
+        function checkLatency(url) {
+            const start = performance.now();
+            return fetch(`https://${url}/favicon.ico`, { mode: 'no-cors' })
+                .then(() => {
+                    const latency = Math.round(performance.now() - start);
+                    return { url, latency };
+                })
+                .catch(() => {
+                    return { url, latency: -1 };
+                });
+        }
+
+        function getStatus(latency) {
+            if (latency === -1) return '异常';
+            if (latency === 1) return '异常';
+            if (latency >= 2 && latency <= 200) return '正常';
+            return '缓慢';
+        }
+
+        function getStatusClass(status) {
+            if (status === '正常') return 'normal';
+            if (status === '异常') return 'abnormal';
+            if (status === '缓慢') return 'slow';
+            return 'error';
+        }
+
+        Promise.all(websites.map(checkLatency)).then(results => {
+            loadingDiv.style.display = 'none';
+            resultsTable.style.display = 'table';
+            results.forEach(({ url, latency }) => {
+                const status = getStatus(latency);
+                const row = resultsTable.insertRow(-1);
+                row.insertCell(0).innerHTML = `<a href=https://${url}>${url}</a>`;
+                row.insertCell(1).textContent = latency === -1 ? 'N/A' : `${latency}ms`;
+                const statusCell = row.insertCell(2);
+                const statusClass = getStatusClass(status);
+                statusCell.innerHTML = `<span class="${statusClass}"><span class="status-dot"></span>${status}</span>`;
+            });
+        });
+    </script>
+</body>
+</html>
