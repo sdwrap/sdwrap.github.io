@@ -123,7 +123,7 @@
         function getStatus(latency) {
             if (latency === -1) return '异常';
             if (latency === 1) return '异常';
-            if (latency >= 2 && latency <= 200) return '正常';
+            if (latency >= 2 && latency <= 300) return '正常';
             return '缓慢';
         }
 
